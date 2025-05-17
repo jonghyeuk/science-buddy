@@ -233,8 +233,198 @@ def topics_page():
     # 검색 기능
     search_term = st.text_input("관심 키워드 검색...", placeholder="환경, AI, 미세플라스틱 등")
     
-    if search_term:
+if search_term:
         results = search_topics(search_term)
         if results:
             st.markdown(f"### '{search_term}' 검색 결과")
-            for result
+            for result in results:
+                with st.expander(f"{result['subtopic']} ({result['category']} > {result['topic']})"):
+                    st.markdown(f"**분야:** {result['category']}")
+                    st.markdown(f"**주제:** {result['topic']}")
+                    st.markdown(f"**연구 아이디어:** {result['subtopic']}")
+                    if st.button(f"이 주제로 선택하기", key=f"select_{result['subtopic']}"):
+                        st.session_state.selected_topic = result['subtopic']
+                        st.success(f"'{result['subtopic']}' 주제가 선택되었습니다!")
+                        st.session_state.experiment_design = ""  # 새 주제이므로 실험 설계 초기화
+        else:
+            st.info(f"'{search_term}'에 대한 검색 결과가 없습니다.")
+    
+    # 인기 연구 분야
+    st.markdown("### 인기 연구 분야")
+    col1, col2 = st.columns(2)
+    
+    popular_keywords = ["환경오염", "인공지능", "재생에너지", "미생물"]
+    with col1:
+        if st.button("환경오염", use_container_width=True):
+            st.session_state.search_term = "환경오염"
+            st.experimental_rerun()
+        if st.button("재생에너지", use_container_width=True):
+            st.session_state.search_term = "에너지"
+            st.experimental_rerun()
+    
+    with col2:
+        if st.button("인공지능", use_container_width=True):
+            st.session_state.search_term = "인공지능"
+            st.experimental_rerun()
+        if st.button("미생물", use_container_width=True):
+            st.session_state.search_term = "미생물"
+            st.experimental_rerun()
+    
+    # 카테고리 목록
+    st.markdown("### 주제 카테고리")
+    categories = get_all_categories()
+    
+    for category in categories:
+        with st.expander(f"{category['icon']} {category['name']}"):
+            for topic in category['topics']:
+                st.markdown(f"#### {topic['name']}")
+                for i, subtopic in enumerate(topic['subtopics']):
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.markdown(f"{i+1}. {subtopic}")
+                    with col2:
+                        if st.button("선택", key=f"btn_{category['id']}_{topic['id']}_{i}"):
+                            st.session_state.selected_topic = subtopic
+                            st.success(f"'{subtopic}' 주제가 선택되었습니다!")
+                            st.session_state.experiment_design = ""  # 새 주제이므로 실험 설계 초기화
+
+def experiment_page():
+    """실험 설계 페이지"""
+    st.title("🧪 실험 설계하기")
+    st.subheader(st.session_state.selected_topic)
+    
+    # 상단 네비게이션
+    if st.button("← 홈으로 돌아가기", key="home_button"):
+        st.session_state.current_page = "home"
+        st.experimental_rerun()
+    
+    # 실험 설계가 없으면 생성
+    if not st.session_state.experiment_design:
+        with st.spinner("실험 설계를 생성하는 중..."):
+            st.session_state.experiment_design = api_get_experiment(st.session_state.selected_topic)
+    
+    # 실험 설계 표시
+    st.markdown(st.session_state.experiment_design)
+    
+    # 이메일 전송 기능
+    st.markdown("---")
+    st.subheader("실험 설계 공유하기")
+    
+    with st.form("email_form"):
+        email = st.text_input("이메일 주소", placeholder="your@email.com")
+        submitted = st.form_submit_button("이메일로 받기", use_container_width=True)
+        
+        if submitted:
+            if "@" in email and "." in email:
+                st.success("실험 설계가 이메일로 전송되었습니다! (테스트 모드)")
+            else:
+                st.error("유효한 이메일 주소를 입력해주세요.")
+    
+    # 클립보드 복사 버튼
+    if st.button("클립보드에 복사", use_container_width=True):
+        # JavaScript를 이용한 클립보드 복사는 Streamlit에서 직접 지원하지 않아
+        # 브라우저에서 실행되는 JavaScript가 필요합니다.
+        # 여기서는 사용자에게 텍스트를 선택하여 복사하도록 안내합니다.
+        st.info("위 내용을 선택하고 Ctrl+C(Mac의 경우 Cmd+C)를 눌러 복사하세요.")
+
+def guide_page():
+    """논문 작성 가이드 페이지"""
+    st.title("📝 논문 작성 가이드")
+    
+    # 상단 네비게이션
+    if st.button("← 홈으로 돌아가기", key="home_button"):
+        st.session_state.current_page = "home"
+        st.experimental_rerun()
+    
+    st.markdown("""
+    ### 소논문 구성 요소
+    
+    과학 소논문은 일반적으로 다음과 같은 구성 요소를 포함합니다:
+    
+    1. **제목 (Title)**
+       - 연구 내용을 명확하고 간결하게 표현
+       - 독자의 관심을 끌 수 있는 제목 선택
+    
+    2. **초록 (Abstract)**
+       - 연구의 목적, 방법, 결과, 결론을 200-300자 내외로
+       - 논문의 전체 내용을 압축적으로 표현
+    
+    3. **서론 (Introduction)**
+       - 연구 배경 및 목적
+       - 선행 연구 검토
+       - 연구 질문 또는 가설 제시
+    
+    4. **연구 방법 (Methods)**
+       - 실험 설계
+       - 재료 및 장비
+       - 데이터 수집 방법
+       - 분석 방법
+    
+    5. **결과 (Results)**
+       - 수집한 데이터 제시
+       - 표와 그래프를 활용한 시각화
+       - 통계 분석 결과
+    
+    6. **고찰 (Discussion)**
+       - 결과 해석
+       - 연구 질문/가설에 대한 답변
+       - 연구의 한계점
+       - 향후 연구 방향
+    
+    7. **결론 (Conclusion)**
+       - 연구의 주요 발견
+       - 연구의 의의
+    
+    8. **참고문헌 (References)**
+       - 인용한 모든 자료의 출처
+       - 학술지 형식에 맞춰 작성
+    """)
+    
+    st.markdown("### 논문 작성 팁")
+    
+    tips = [
+        "**객관적인 어조 유지하기**: 개인적인 의견보다는 데이터에 기반한 서술을 해야 합니다.",
+        "**그래프와 표 활용하기**: 복잡한 데이터는 시각적으로 표현하면 더 이해하기 쉽습니다.",
+        "**일관된 형식 사용하기**: 전체 논문에서 용어, 단위, 참고문헌 형식을 일관되게 사용합니다.",
+        "**명확하고 간결하게 쓰기**: 불필요한 수식어를 피하고 핵심 내용을 명확하게 전달합니다.",
+        "**여러 번 수정하기**: 초안 작성 후 여러 번 읽고 수정하여 완성도를 높입니다."
+    ]
+    
+    for tip in tips:
+        st.markdown(f"- {tip}")
+    
+    st.markdown("### 샘플 논문")
+    
+    st.info("사이언스버디로 주제를 선택하고 실험을 설계한 후, 이 가이드를 참고하여 논문을 작성해보세요!")
+
+# 메인 앱 로직
+def main():
+    # 페이지 설정
+    st.set_page_config(
+        page_title="사이언스버디",
+        page_icon="🧪",
+        layout="centered"
+    )
+    
+    # CSS 로드 시도
+    try:
+        load_css()
+    except:
+        pass
+    
+    # 현재 페이지에 따라 다른 함수 호출
+    if st.session_state.current_page == "login":
+        login_page()
+    elif st.session_state.current_page == "home":
+        home_page()
+    elif st.session_state.current_page == "chat":
+        chat_page()
+    elif st.session_state.current_page == "topics":
+        topics_page()
+    elif st.session_state.current_page == "experiment":
+        experiment_page()
+    elif st.session_state.current_page == "guide":
+        guide_page()
+
+if __name__ == "__main__":
+    main()
