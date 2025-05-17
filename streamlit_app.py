@@ -222,71 +222,71 @@ def chat_page():
             st.experimental_rerun()
 
 def topics_page():
-    """주제 탐색 페이지"""
-    st.title("🔍 관심분야 탐색")
-    
-    # 상단 네비게이션
-    if st.button("← 홈으로 돌아가기", key="home_button"):
-        st.session_state.current_page = "home"
-        st.experimental_rerun()
-    
-    # 검색 기능
-    search_term = st.text_input("관심 키워드 검색...", placeholder="환경, AI, 미세플라스틱 등")
-    
-if search_term:
-        results = search_topics(search_term)
-        if results:
-            st.markdown(f"### '{search_term}' 검색 결과")
-            for result in results:
-                with st.expander(f"{result['subtopic']} ({result['category']} > {result['topic']})"):
-                    st.markdown(f"**분야:** {result['category']}")
-                    st.markdown(f"**주제:** {result['topic']}")
-                    st.markdown(f"**연구 아이디어:** {result['subtopic']}")
-                    if st.button(f"이 주제로 선택하기", key=f"select_{result['subtopic']}"):
-                        st.session_state.selected_topic = result['subtopic']
-                        st.success(f"'{result['subtopic']}' 주제가 선택되었습니다!")
-                        st.session_state.experiment_design = ""  # 새 주제이므로 실험 설계 초기화
-        else:
-            st.info(f"'{search_term}'에 대한 검색 결과가 없습니다.")
-    
-    # 인기 연구 분야
-    st.markdown("### 인기 연구 분야")
-    col1, col2 = st.columns(2)
-    
-    popular_keywords = ["환경오염", "인공지능", "재생에너지", "미생물"]
-    with col1:
-        if st.button("환경오염", use_container_width=True):
-            st.session_state.search_term = "환경오염"
-            st.experimental_rerun()
-        if st.button("재생에너지", use_container_width=True):
-            st.session_state.search_term = "에너지"
-            st.experimental_rerun()
-    
-    with col2:
-        if st.button("인공지능", use_container_width=True):
-            st.session_state.search_term = "인공지능"
-            st.experimental_rerun()
-        if st.button("미생물", use_container_width=True):
-            st.session_state.search_term = "미생물"
-            st.experimental_rerun()
-    
-    # 카테고리 목록
-    st.markdown("### 주제 카테고리")
-    categories = get_all_categories()
-    
-    for category in categories:
-        with st.expander(f"{category['icon']} {category['name']}"):
-            for topic in category['topics']:
-                st.markdown(f"#### {topic['name']}")
-                for i, subtopic in enumerate(topic['subtopics']):
-                    col1, col2 = st.columns([4, 1])
-                    with col1:
-                        st.markdown(f"{i+1}. {subtopic}")
-                    with col2:
-                        if st.button("선택", key=f"btn_{category['id']}_{topic['id']}_{i}"):
-                            st.session_state.selected_topic = subtopic
-                            st.success(f"'{subtopic}' 주제가 선택되었습니다!")
-                            st.session_state.experiment_design = ""  # 새 주제이므로 실험 설계 초기화
+   """주제 탐색 페이지"""
+   st.title("🔍 관심분야 탐색")
+   
+   # 상단 네비게이션
+   if st.button("← 홈으로 돌아가기", key="home_button"):
+       st.session_state.current_page = "home"
+       st.experimental_rerun()
+   
+   # 검색 기능
+   search_term = st.text_input("관심 키워드 검색...", placeholder="환경, AI, 미세플라스틱 등")
+   
+   if search_term:
+       results = search_topics(search_term)
+       if results:
+           st.markdown(f"### '{search_term}' 검색 결과")
+           for result in results:
+               with st.expander(f"{result['subtopic']} ({result['category']} > {result['topic']})"):
+                   st.markdown(f"**분야:** {result['category']}")
+                   st.markdown(f"**주제:** {result['topic']}")
+                   st.markdown(f"**연구 아이디어:** {result['subtopic']}")
+                   if st.button(f"이 주제로 선택하기", key=f"select_{result['subtopic']}"):
+                       st.session_state.selected_topic = result['subtopic']
+                       st.success(f"'{result['subtopic']}' 주제가 선택되었습니다!")
+                       st.session_state.experiment_design = ""  # 새 주제이므로 실험 설계 초기화
+       else:
+           st.info(f"'{search_term}'에 대한 검색 결과가 없습니다.")
+   
+   # 인기 연구 분야
+   st.markdown("### 인기 연구 분야")
+   col1, col2 = st.columns(2)
+   
+   popular_keywords = ["환경오염", "인공지능", "재생에너지", "미생물"]
+   with col1:
+       if st.button("환경오염", use_container_width=True):
+           st.session_state.search_term = "환경오염"
+           st.experimental_rerun()
+       if st.button("재생에너지", use_container_width=True):
+           st.session_state.search_term = "에너지"
+           st.experimental_rerun()
+   
+   with col2:
+       if st.button("인공지능", use_container_width=True):
+           st.session_state.search_term = "인공지능"
+           st.experimental_rerun()
+       if st.button("미생물", use_container_width=True):
+           st.session_state.search_term = "미생물"
+           st.experimental_rerun()
+   
+   # 카테고리 목록
+   st.markdown("### 주제 카테고리")
+   categories = get_all_categories()
+   
+   for category in categories:
+       with st.expander(f"{category['icon']} {category['name']}"):
+           for topic in category['topics']:
+               st.markdown(f"#### {topic['name']}")
+               for i, subtopic in enumerate(topic['subtopics']):
+                   col1, col2 = st.columns([4, 1])
+                   with col1:
+                       st.markdown(f"{i+1}. {subtopic}")
+                   with col2:
+                       if st.button("선택", key=f"btn_{category['id']}_{topic['id']}_{i}"):
+                           st.session_state.selected_topic = subtopic
+                           st.success(f"'{subtopic}' 주제가 선택되었습니다!")
+                           st.session_state.experiment_design = ""  # 새 주제이므로 실험 설계 초기화
 
 def experiment_page():
     """실험 설계 페이지"""
